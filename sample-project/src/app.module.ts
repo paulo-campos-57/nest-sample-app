@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CatModule } from './modules/cat/cat.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatService } from './modules/cat/cat.service';
@@ -16,8 +14,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     }),
     CatModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, CatService],
+  providers: [CatService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
