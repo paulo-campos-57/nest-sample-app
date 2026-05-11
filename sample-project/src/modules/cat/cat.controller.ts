@@ -1,76 +1,110 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
-  Delete,
-  Body,
-  HttpStatus,
-  HttpException,
-  ParseIntPipe,
-  Param,
-  HttpCode,
 } from '@nestjs/common';
-import { CatService } from './cat.service';
-import { CreateCatDto } from './dto/create-cat.dto';
-import { Cat } from './entities/cat.entity';
 
-@Controller('cat')
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { CatService } from './cat.service';
+import { Cat } from './entities/cat.entity';
+import { CreateCatDto } from './dto/create-cat.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
+
+@ApiTags('cats')
+@Controller('cats')
 export class CatController {
-  constructor(private catService: CatService) {}
+  constructor(private readonly catService: CatService) {}
 
   @Post()
-  async create(@Body() createCatDto: CreateCatDto) {
-    try {
-      await this.catService.create(createCatDto);
-      return { message: 'Cat created successfully' };
-    } catch (error) {
-      throw new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Failed to create cat',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        {
-          cause: error,
-        },
-      );
-    }
+  @ApiOperation({ summary: 'Create a new cat' })
+  @ApiCreatedResponse({
+    description: 'Cat created successfully',
+    type: Cat,
+  })
+  async create(@Body() createCatDto: CreateCatDto): Promise<Cat> {
+    return this.catService.create(createCatDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'List all cats' })
+  @ApiOkResponse({
+    description: 'List of cats',
+    type: Cat,
+    isArray: true,
+  })
   findAll(): Promise<Cat[] | string> {
-    try {
-      return this.catService.findAll();
-    } catch (error) {
-      throw new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Failed to find cats',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        {
-          cause: error,
-        },
-      );
-    }
+    return this.catService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a cat by id' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Cat found',
+    type: Cat,
+  })
+  @ApiNotFoundResponse({
+    description: 'Cat not found',
+  })
   findById(@Param('id', ParseIntPipe) id: number): Promise<Cat> {
     return this.catService.findById(id);
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update a cat' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+  })
+  @ApiOkResponse({
+    description: 'Cat updated successfully',
+    type: Cat,
+  })
+  @ApiNotFoundResponse({
+    description: 'Cat not found',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateCatDto: CreateCatDto,
-  ) {
+    @Body() updateCatDto: UpdateCatDto,
+  ): Promise<Cat | null> {
     return this.catService.update(id, updateCatDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a cat' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+  })
+  @ApiNoContentResponse({
+    description: 'Cat deleted successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'Cat not found',
+  })
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.catService.delete(id);
   }
