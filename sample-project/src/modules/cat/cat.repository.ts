@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Cat } from './entities/cat.entity';
+import { CreateCatDto } from './dto/create-cat.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
 
 @Injectable()
 export class CatRepository {
@@ -11,7 +13,7 @@ export class CatRepository {
     private readonly repository: Repository<Cat>,
   ) {}
 
-  async create(data: Partial<Cat>): Promise<Cat> {
+  async createCat(data: CreateCatDto): Promise<Cat> {
     const cat = this.repository.create(data);
     return this.repository.save(cat);
   }
@@ -24,7 +26,7 @@ export class CatRepository {
     return this.repository.findOneBy({ id });
   }
 
-  async update(id: number, data: Partial<Cat>): Promise<Cat | null> {
+  async update(id: number, data: UpdateCatDto): Promise<Cat | null> {
     const cat = await this.findById(id);
 
     if (!cat) {

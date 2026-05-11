@@ -1,13 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CatRepository } from './cat.repository';
+
 import { Cat } from './entities/cat.entity';
+import { CreateCatDto } from './dto/create-cat.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
 
 @Injectable()
 export class CatService {
   constructor(private readonly catRepository: CatRepository) {}
 
-  async create(data: Partial<Cat>): Promise<Cat> {
-    const cat = await this.catRepository.create(data);
+  async create(data: CreateCatDto): Promise<Cat> {
+    const cat = await this.catRepository.createCat(data);
     if (!cat) {
       throw new InternalServerErrorException('Failed to create cat');
     }
@@ -34,5 +37,25 @@ export class CatService {
       );
     }
     return cat;
+  }
+
+  async update(id: number, data: UpdateCatDto): Promise<Cat | null> {
+    const cat = await this.catRepository.update(id, data);
+    if (cat === null) {
+      throw new InternalServerErrorException(
+        `Failed to update cat with id ${id}`,
+      );
+    }
+    return cat;
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const result = await this.catRepository.delete(id);
+    if (!result) {
+      throw new InternalServerErrorException(
+        `Failed to delete cat with id ${id}`,
+      );
+    }
+    return result;
   }
 }
