@@ -1,3 +1,10 @@
+/*
+This file defines the AppModule, which is the root module of the NestJS application. 
+It imports the CatModule, which contains all components related to cat management, and sets up the TypeORM configuration for connecting to a SQLite database. 
+The AppModule also implements the NestModule interface to configure middleware, applying the LoggerMiddleware to all routes in the application. 
+This setup allows for a modular architecture where different features of the application can be organized into separate modules, 
+while still maintaining a centralized configuration in the AppModule.
+*/
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { CatModule } from './modules/cat/cat.module';
 import { TypeOrmModule } from '@nestjs/typeorm';

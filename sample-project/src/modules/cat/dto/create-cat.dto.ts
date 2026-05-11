@@ -1,3 +1,8 @@
+/*
+This layer contains the DTOs (Data Transfer Objects) that define the shape of data sent in requests to create or update cats. 
+The CreateCatDto class includes validation rules and Swagger documentation for each property, 
+ensuring that incoming data is properly structured and documented for API consumers.
+*/
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 

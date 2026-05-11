@@ -1,3 +1,9 @@
+/*
+This file is the entry point of the NestJS application. 
+It bootstraps the application by creating an instance of the AppModule and configuring global settings such as validation pipes and Swagger documentation.
+The bootstrap function initializes the NestJS application, sets up global validation using ValidationPipe, and configures Swagger for API documentation. 
+Finally, it starts the application on a specified port and logs the URL for accessing the Swagger documentation.
+*/
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';

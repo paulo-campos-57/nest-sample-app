@@ -1,3 +1,9 @@
+/*
+This file defines the CatController class, which is responsible for handling HTTP requests related to cat operations in the application. 
+The controller uses decorators from @nestjs/common to define routes and HTTP methods for creating, retrieving, updating, and deleting cats. 
+It also uses decorators from @nestjs/swagger to provide metadata for API documentation generation. 
+The CatController interacts with the CatService to perform the necessary business logic for each operation, such as creating a new cat, listing all cats, finding a cat by ID, updating a cat's information, and deleting a cat.
+*/
 import {
   Body,
   Controller,

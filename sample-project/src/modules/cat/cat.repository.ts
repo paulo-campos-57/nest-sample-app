@@ -1,3 +1,8 @@
+/*
+This file defines the CatRepository class, which is responsible for interacting with the database to perform CRUD operations on Cat entities.
+The repository uses TypeORM's Repository to manage Cat entities, providing methods to create, find, update, and delete cats in the database.
+The CatRepository is injected into the CatService, which uses it to implement the business logic for handling cat-related operations in the application.
+*/
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

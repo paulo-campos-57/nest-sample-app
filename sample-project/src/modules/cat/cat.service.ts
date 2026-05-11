@@ -1,3 +1,10 @@
+/*
+This file defines the CatService class, which contains the business logic for managing cats in the application. 
+The service interacts with the CatRepository to perform CRUD operations on Cat entities. 
+Each method in the service handles a specific operation, such as creating a new cat, retrieving all cats, 
+finding a cat by ID, updating a cat's information, and deleting a cat. 
+The service also includes error handling to manage cases where operations fail or when a cat is not found.
+*/
 import {
   Injectable,
   InternalServerErrorException,
