@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CatRepository } from './cat.repository';
 
 import { Cat } from './entities/cat.entity';
@@ -49,13 +53,11 @@ export class CatService {
     return cat;
   }
 
-  async delete(id: number): Promise<boolean> {
-    const result = await this.catRepository.delete(id);
-    if (!result) {
-      throw new InternalServerErrorException(
-        `Failed to delete cat with id ${id}`,
-      );
+  async delete(id: number): Promise<void> {
+    const deleted = await this.catRepository.delete(id);
+
+    if (!deleted) {
+      throw new NotFoundException(`Cat with id ${id} not found`);
     }
-    return result;
   }
 }
