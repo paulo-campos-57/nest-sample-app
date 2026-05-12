@@ -4,7 +4,7 @@ The CreateCatDto class includes validation rules and Swagger documentation for e
 ensuring that incoming data is properly structured and documented for API consumers.
 */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min, Max } from 'class-validator';
 
 export class CreateCatDto {
   @ApiProperty({
@@ -21,6 +21,7 @@ export class CreateCatDto {
   })
   @IsInt()
   @Min(0)
+  @Max(999)
   age!: number;
 
   @ApiProperty({
