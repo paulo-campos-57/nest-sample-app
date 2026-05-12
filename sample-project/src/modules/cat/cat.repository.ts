@@ -10,9 +10,10 @@ import { Repository } from 'typeorm';
 import { Cat } from './entities/cat.entity';
 import { CreateCatDto } from './dto/create-cat.dto';
 import { UpdateCatDto } from './dto/update-cat.dto';
+import { ICatRepository } from './interfaces/cat-repository.interface';
 
 @Injectable()
-export class CatRepository {
+export class CatRepository implements ICatRepository {
   constructor(
     @InjectRepository(Cat)
     private readonly repository: Repository<Cat>,

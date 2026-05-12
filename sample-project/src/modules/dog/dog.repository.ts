@@ -4,9 +4,10 @@ import { Dog } from './entities/dog.entity';
 import { Repository } from 'typeorm';
 import { CreateDogDto } from './dto/create-dog.dto';
 import { UpdateDogDto } from './dto/update-dog.dto';
+import { IDogRepository } from './interfaces/dog-repository.interface';
 
 @Injectable()
-export class DogRepository {
+export class DogRepository implements IDogRepository {
   constructor(
     @InjectRepository(Dog)
     private readonly repository: Repository<Dog>,
