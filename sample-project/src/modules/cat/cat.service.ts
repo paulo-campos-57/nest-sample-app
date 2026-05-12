@@ -50,7 +50,7 @@ export class CatService {
     return cat;
   }
 
-  async update(id: number, data: UpdateCatDto): Promise<Cat | null> {
+  async update(id: number, data: UpdateCatDto): Promise<Cat> {
     const cat = await this.catRepository.update(id, data);
     if (cat === null) {
       throw new InternalServerErrorException(
