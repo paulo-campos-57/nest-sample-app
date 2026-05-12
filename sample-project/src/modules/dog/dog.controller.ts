@@ -39,7 +39,7 @@ export class DogController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all dogs' })
+  @ApiOperation({ summary: 'List all dogs' })
   @ApiOkResponse({
     description: 'List of dogs',
     type: Dog,
@@ -50,6 +50,7 @@ export class DogController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a dog by id' })
   @ApiParam({
     name: 'id',
     type: Number,
