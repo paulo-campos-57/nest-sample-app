@@ -17,10 +17,16 @@ import { CatRepository } from './cat.repository';
 import { Cat } from './entities/cat.entity';
 import { CreateCatDto } from './dto/create-cat.dto';
 import { UpdateCatDto } from './dto/update-cat.dto';
+import { WhatsAppService } from '../../common/services/whatsapp.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CatService {
-  constructor(private readonly catRepository: CatRepository) {}
+  constructor(
+    private readonly catRepository: CatRepository,
+    private readonly whatsappService: WhatsAppService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async create(data: CreateCatDto): Promise<Cat> {
     const cat = await this.catRepository.createCat(data);
@@ -28,12 +34,36 @@ export class CatService {
     if (!cat) {
       throw new InternalServerErrorException('Failed to create cat');
     }
+    const phone = this.configService.get<string>('PHONE_NUMBER2');
+    if (!phone) {
+      throw new NotFoundException('Phone number not found');
+    }
+
+    await this.whatsappService
+      .sendMessage(
+        phone,
+        `🐱 Novo gato cadastrado!
+
+      Nome: ${cat.name}
+      Idade: ${cat.age}
+      Raça: ${cat.breed}
+      Cor: ${cat.color}`,
+      )
+      .catch((error) => {
+        console.error('Failed to send WhatsApp notification: ', error);
+      });
 
     return cat;
   }
 
-  async findAll(): Promise<Cat[]> {
-    return this.catRepository.findAll();
+  async findAll(): Promise<Cat[] | string> {
+    const cats = await this.catRepository.findAll();
+
+    if (cats.length === 0) {
+      return 'No cats found yet';
+    }
+
+    return cats;
   }
 
   async findById(id: number): Promise<Cat> {

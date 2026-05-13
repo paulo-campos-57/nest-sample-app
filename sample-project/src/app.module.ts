@@ -11,9 +11,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatService } from './modules/cat/cat.service';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { DogModule } from './modules/dog/dog.module';
+import { DogService } from './modules/dog/dog.service';
+import { CommonModule } from './common/common.module';
+import { WhatsAppService } from './common/services/whatsapp.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'sqlite.db',
@@ -22,8 +29,9 @@ import { DogModule } from './modules/dog/dog.module';
     }),
     CatModule,
     DogModule,
+    CommonModule,
   ],
-  providers: [CatService],
+  providers: [CatService, DogService, WhatsAppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

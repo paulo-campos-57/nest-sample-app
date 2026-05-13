@@ -25,3 +25,6 @@ lerna-debug.log*
 
 # sqlite database
 /sample-project/sqlite.db
+
+#auth_info
+/sample-project/auth_info
