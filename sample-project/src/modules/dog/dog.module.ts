@@ -6,7 +6,7 @@ import { DogService } from './dog.service';
 import { DogRepository } from './dog.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Dog])],
+  imports: [DogModule, TypeOrmModule.forFeature([Dog])],
   controllers: [DogController],
   providers: [DogService, DogRepository],
   exports: [DogRepository],

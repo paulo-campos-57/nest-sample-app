@@ -121,26 +121,34 @@ export class WhatsAppService implements OnModuleInit {
 
     console.log('Resolved JID:', jid);
 
-    const result = await socket.sendMessage(jid, {
-      text: message,
-    });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await this.socket.sendMessage(jid, { text: message });
+        console.log('Message sent successfully.');
+        return;
+      } catch (error) {
+        console.log(`Attempt ${attempt} failed.`);
 
-    console.log('Message sent successfully:', JSON.stringify(result, null, 2));
+        if (attempt === 3) {
+          throw error;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
   }
-  private async waitUntilConnected(timeoutMs = 15000): Promise<void> {
+  private async waitUntilConnected(timeout = 30000): Promise<void> {
     const start = Date.now();
 
     while (!this.isConnected) {
-      const elapsed = Date.now() - start;
-
-      if (elapsed > timeoutMs) {
+      if (Date.now() - start > timeout) {
         throw new Error('Timeout waiting for WhatsApp connection');
       }
 
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 500);
-      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
   isReady(): boolean {
     return this.socket !== null && this.isConnected;

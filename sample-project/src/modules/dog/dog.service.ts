@@ -26,7 +26,9 @@ export class DogService {
       throw new InternalServerErrorException('Failed to create dog');
     }
 
-    const phone = this.configService.get<string>('PHONE_NUMBER2');
+    const phone = this.configService.get<string>('PHONE_NUMBER1');
+    console.log(process.env.PHONE_NUMBER1);
+    console.log(phone);
     if (!phone) {
       throw new NotFoundException('Phone number not found');
     }

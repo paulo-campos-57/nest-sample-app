@@ -9,9 +9,10 @@ import { CatService } from './cat.service';
 import { Cat } from './entities/cat.entity';
 import { CatRepository } from './cat.repository';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { CommonModule } from '../../common/common.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cat])],
+  imports: [CommonModule, TypeOrmModule.forFeature([Cat])],
   controllers: [CatController],
   providers: [CatService, CatRepository],
   exports: [CatRepository],
