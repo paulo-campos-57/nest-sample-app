@@ -9,6 +9,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,11 +21,14 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   const config = new DocumentBuilder()
-    .setTitle('Cats API')
-    .setDescription('Treinamento em NestJS, API para gerenciamento de gatos')
+    .setTitle('Animals API')
+    .setDescription('Treinamento em NestJS, API para gerenciamento de animais')
     .setVersion('1.0')
-    .addTag('cats')
+    .addTag('Animals')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

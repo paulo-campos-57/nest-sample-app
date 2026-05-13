@@ -9,7 +9,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { CatModule } from './modules/cat/cat.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatService } from './modules/cat/cat.service';
-import { LoggerMiddleware } from './middleware/logger.middleware';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { DogModule } from './modules/dog/dog.module';
 
 @Module({
