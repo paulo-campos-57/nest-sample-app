@@ -1,15 +1,23 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import makeWASocket, {
+  BufferJSON,
   DisconnectReason,
   WASocket,
-  useMultiFileAuthState,
+  initAuthCreds,
+  proto,
 } from '@whiskeysockets/baileys';
 
 import * as QRCode from 'qrcode-terminal';
+import { WhatsAppSessionRepository } from '../repositories/whatsapp-session.repository';
 
 @Injectable()
 export class WhatsAppService implements OnModuleInit {
+  constructor(private readonly sessionRepository: WhatsAppSessionRepository) {}
+
   private socket: WASocket | null = null;
   private isConnected = false;
   private initialized = false;
@@ -21,6 +29,72 @@ export class WhatsAppService implements OnModuleInit {
 
     this.initialized = true;
     await this.initializeSocket();
+  }
+
+  private async getAuthState() {
+    const sessionName = 'default';
+
+    const savedSession =
+      await this.sessionRepository.findBySessionName(sessionName);
+
+    const authState = savedSession?.authState
+      ? JSON.parse(JSON.stringify(savedSession.authState), BufferJSON.reviver)
+      : {
+          creds: initAuthCreds(),
+          keys: {},
+        };
+
+    const state = {
+      creds: authState.creds,
+
+      keys: {
+        async get(type: string, ids: string[]) {
+          const category = authState.keys?.[type] || {};
+          const result: Record<string, any> = {};
+
+          for (const id of ids) {
+            const value = category[id];
+
+            if (value) {
+              result[id] =
+                type === 'app-state-sync-key'
+                  ? // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    proto.Message.AppStateSyncKeyData.fromObject(value)
+                  : value;
+            }
+          }
+
+          return result;
+        },
+
+        async set(data: Record<string, any>) {
+          authState.keys = authState.keys || {};
+
+          for (const category in data) {
+            authState.keys[category] = {
+              ...(authState.keys[category] || {}),
+              ...data[category],
+            };
+          }
+        },
+      },
+    };
+
+    const saveCreds = async () => {
+      const serialized = JSON.parse(
+        JSON.stringify(
+          {
+            creds: state.creds,
+            keys: authState.keys,
+          },
+          BufferJSON.replacer,
+        ),
+      );
+
+      await this.sessionRepository.saveSession(sessionName, serialized);
+    };
+
+    return { state, saveCreds };
   }
 
   private async initializeSocket(): Promise<void> {
@@ -35,10 +109,16 @@ export class WhatsAppService implements OnModuleInit {
       this.isConnected = false;
     }
 
-    const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+    const { state, saveCreds } = await this.getAuthState();
 
     this.socket = makeWASocket({
       auth: state,
+
+      printQRInTerminal: false,
+
+      browser: ['Ubuntu', 'Chrome', '22.04.4'],
+
+      syncFullHistory: false,
     });
 
     const socket = this.socket;
@@ -51,6 +131,7 @@ export class WhatsAppService implements OnModuleInit {
       const { connection, qr, lastDisconnect } = update;
 
       if (qr) {
+        console.clear();
         console.log('Scan the QR code below:');
         QRCode.generate(qr, { small: true });
       }
@@ -75,16 +156,18 @@ export class WhatsAppService implements OnModuleInit {
 
         if (shouldReconnect) {
           console.log('Reconnecting to WhatsApp...');
-          void this.initializeSocket();
+
+          setTimeout(() => {
+            void this.initializeSocket();
+          }, 3000);
         } else {
           console.log(
-            'Session expired. Delete auth_info and scan the QR code again.',
+            'Session expired. Delete the saved session in the database and scan the QR code again.',
           );
         }
       }
     });
   }
-
   async sendMessage(phone: string, message: string): Promise<void> {
     await this.waitUntilConnected();
 
