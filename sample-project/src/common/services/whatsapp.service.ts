@@ -4,11 +4,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import makeWASocket, {
-  BufferJSON,
   DisconnectReason,
   WASocket,
   initAuthCreds,
-  proto,
 } from '@whiskeysockets/baileys';
 
 import * as QRCode from 'qrcode-terminal';
@@ -37,12 +35,10 @@ export class WhatsAppService implements OnModuleInit {
     const savedSession =
       await this.sessionRepository.findBySessionName(sessionName);
 
-    const authState = savedSession?.authState
-      ? JSON.parse(JSON.stringify(savedSession.authState), BufferJSON.reviver)
-      : {
-          creds: initAuthCreds(),
-          keys: {},
-        };
+    const authState = savedSession?.authState ?? {
+      creds: initAuthCreds(),
+      keys: {},
+    };
 
     const state = {
       creds: authState.creds,
@@ -53,14 +49,8 @@ export class WhatsAppService implements OnModuleInit {
           const result: Record<string, any> = {};
 
           for (const id of ids) {
-            const value = category[id];
-
-            if (value) {
-              result[id] =
-                type === 'app-state-sync-key'
-                  ? // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    proto.Message.AppStateSyncKeyData.fromObject(value)
-                  : value;
+            if (category[id]) {
+              result[id] = category[id];
             }
           }
 
@@ -81,22 +71,14 @@ export class WhatsAppService implements OnModuleInit {
     };
 
     const saveCreds = async () => {
-      const serialized = JSON.parse(
-        JSON.stringify(
-          {
-            creds: state.creds,
-            keys: authState.keys,
-          },
-          BufferJSON.replacer,
-        ),
-      );
-
-      await this.sessionRepository.saveSession(sessionName, serialized);
+      await this.sessionRepository.saveSession(sessionName, {
+        creds: state.creds,
+        keys: authState.keys,
+      });
     };
 
     return { state, saveCreds };
   }
-
   private async initializeSocket(): Promise<void> {
     if (this.socket) {
       try {

@@ -35,4 +35,8 @@ export class WhatsAppSessionRepository {
 
     await this.repository.save(session);
   }
+
+  async clearSessions(): Promise<void> {
+    await this.repository.clear();
+  }
 }
