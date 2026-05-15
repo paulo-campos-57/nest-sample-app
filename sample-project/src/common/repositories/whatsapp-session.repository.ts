@@ -36,7 +36,13 @@ export class WhatsAppSessionRepository {
     await this.repository.save(session);
   }
 
-  async clearSessions(): Promise<void> {
-    await this.repository.clear();
+  async clearSession(sessionName: string): Promise<void> {
+    const session = await this.findBySessionName(sessionName);
+
+    if (!session) {
+      console.error('Session not found');
+    } else {
+      await this.repository.clear();
+    }
   }
 }

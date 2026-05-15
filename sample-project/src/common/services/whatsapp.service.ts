@@ -4,9 +4,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import makeWASocket, {
+  BufferJSON,
   DisconnectReason,
   WASocket,
   initAuthCreds,
+  proto,
 } from '@whiskeysockets/baileys';
 
 import * as QRCode from 'qrcode-terminal';
@@ -35,28 +37,51 @@ export class WhatsAppService implements OnModuleInit {
     const savedSession =
       await this.sessionRepository.findBySessionName(sessionName);
 
-    const authState = savedSession?.authState ?? {
-      creds: initAuthCreds(),
-      keys: {},
-    };
+    /**
+     * Se existir uma sessão no banco, desserializa utilizando
+     * BufferJSON.reviver para restaurar corretamente Buffers
+     * e outros tipos especiais usados pelo Baileys.
+     *
+     * Caso não exista, cria um estado inicial novo.
+     */
+    const authState = savedSession?.authState
+      ? JSON.parse(JSON.stringify(savedSession.authState), BufferJSON.reviver)
+      : {
+          creds: initAuthCreds(),
+          keys: {},
+        };
 
     const state = {
       creds: authState.creds,
 
       keys: {
+        /**
+         * Recupera chaves por categoria e id.
+         * Segue a mesma lógica do useMultiFileAuthState.
+         */
         async get(type: string, ids: string[]) {
           const category = authState.keys?.[type] || {};
           const result: Record<string, any> = {};
 
           for (const id of ids) {
-            if (category[id]) {
-              result[id] = category[id];
+            let value = category[id];
+
+            if (value) {
+              if (type === 'app-state-sync-key') {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                value = proto.Message.AppStateSyncKeyData.fromObject(value);
+              }
+
+              result[id] = value;
             }
           }
 
           return result;
         },
 
+        /**
+         * Atualiza as chaves em memória.
+         */
         async set(data: Record<string, any>) {
           authState.keys = authState.keys || {};
 
@@ -70,11 +95,22 @@ export class WhatsAppService implements OnModuleInit {
       },
     };
 
+    /**
+     * Persiste credenciais e chaves no banco.
+     * Usa BufferJSON.replacer para serializar Buffers.
+     */
     const saveCreds = async () => {
-      await this.sessionRepository.saveSession(sessionName, {
-        creds: state.creds,
-        keys: authState.keys,
-      });
+      const serialized = JSON.parse(
+        JSON.stringify(
+          {
+            creds: state.creds,
+            keys: authState.keys,
+          },
+          BufferJSON.replacer,
+        ),
+      );
+
+      await this.sessionRepository.saveSession(sessionName, serialized);
     };
 
     return { state, saveCreds };
@@ -109,7 +145,8 @@ export class WhatsAppService implements OnModuleInit {
       void saveCreds();
     });
 
-    socket.ev.on('connection.update', (update) => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    socket.ev.on('connection.update', async (update) => {
       const { connection, qr, lastDisconnect } = update;
 
       if (qr) {
@@ -143,9 +180,12 @@ export class WhatsAppService implements OnModuleInit {
             void this.initializeSocket();
           }, 3000);
         } else {
-          console.log(
-            'Session expired. Delete the saved session in the database and scan the QR code again.',
-          );
+          console.log('Session expired. Removing session from database...');
+
+          await this.sessionRepository.clearSession('default');
+
+          this.socket = null;
+          this.isConnected = false;
         }
       }
     });
